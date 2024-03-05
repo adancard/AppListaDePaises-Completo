@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Você pode escolher outros ícones conforme sua preferência
 
 const PaisesScreen = () => {
@@ -8,6 +8,7 @@ const PaisesScreen = () => {
   const [selectedPais, setSelectedPais] = useState(null);
   const [editedNome, setEditedNome] = useState('');
   const [editedCapital, setEditedCapital] = useState('');
+  const [searchPais, setSearchPais] = useState('');
 
   useEffect(() => {
     //const apiUrl = 'http://192.168.15.81:8080/pais';
@@ -85,10 +86,59 @@ const PaisesScreen = () => {
           throw new Error(`Falha ao excluir o país. Código de status: ${response.status}`);
         }
       });
-}
+  }
+
+  const buscarPorid = () => {
+    if (searchPais.trim() === '') {
+
+      alert("insira um ID")
+
+    }
+
+    const url = `http://localhost:8080/pais/nome/${encodeURIComponent(searchPais)}`;
+
+    // Configuração da solicitação
+    const requestOptions = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        // Adicione outros cabeçalhos conforme necessário
+      },
+    };
+
+    // Fazendo a solicitação GET
+    fetch(url, requestOptions)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Falha ao buscar o país. Código de status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Manipule os dados retornados conforme necessário
+        console.log('Dados dos países encontrados:', data);
+
+        // Verifique se há resultados
+        if (data.length === 0) {
+          return;
+        }
+
+        // Construa a mensagem com os resultados
+        return data
+
+      })
+      .catch(error => {
+      });
+
+  }
 
   return (
     <View style={styles.container}>
+
+      <TextInput placeholder='Digite o Pais'
+        autoCapitalize='none'
+        style={styles.input}
+        onChangeText={text => setSearchPais(text)}></TextInput>
       <Text style={styles.rowText}>Bloco de Países Cadastrados</Text>
       <View style={styles.tableHeader}>
         <Text style={styles.headerText}>Nome</Text>
@@ -96,7 +146,16 @@ const PaisesScreen = () => {
         <Text style={styles.headerText}>Ações</Text>
       </View>
       <FlatList
-        data={paises}
+        data={paises.filter((val) => {
+        if (searchPais === '') {
+        return val
+        } else if (val.nome.includes(searchPais)) {
+
+        return val
+
+        }
+
+        })}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.tableRow}>
@@ -167,10 +226,15 @@ const styles = StyleSheet.create({
     borderBottomColor: '#000',
     marginBottom: 8,
   },
+  butao: {
+    justifyContent: 'space-evenly',
+    display: 'flex'
+
+  },
   headerText: {
     fontWeight: 'bold',
     fontSize: 16,
-    padding:20
+    padding: 20
   },
   tableRow: {
     flexDirection: 'row',
@@ -180,8 +244,8 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: 16,
-    padding:20,
-    textAlign:'center'
+    padding: 20,
+    textAlign: 'center'
   },
   actionButtons: {
     flexDirection: 'row',
@@ -215,6 +279,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 8,
     paddingLeft: 8,
+    textAlign: "center"
   },
   btn: {
     backgroundColor: '#808080', // Cor de fundo cinza
@@ -223,7 +288,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    margin:10
+    margin: 10
   },
   btnText: {
     color: 'white', // Cor do texto em branco
